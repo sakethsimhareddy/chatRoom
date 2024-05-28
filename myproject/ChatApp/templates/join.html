@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Sign in to access your account">
+  <meta name="generator" content="Hugo 0.122.0">
+  <title>{% block title %}chat app{% endblock %}</title>
+
+  {% load bootstrap5 static %}
+  {% bootstrap_css %}
+  {% bootstrap_javascript %}
+  <style>
+    body{
+        background : url({% static 'img/backgroundMain.jpg' %}); 
+    }
+  </style>
+</head>
+<body>
+<div class="container my-5">
+  {% if messages %}
+  <div class="mb-3">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+    <div class="position-relative p-5 text-center text-muted bg-body border border-dashed rounded-5">
+        <a href="{% url 'home' %}">
+      <button type="button" class="position-absolute top-0 end-0 p-3 m-3 btn-close bg-secondary bg-opacity-10 rounded-pill" aria-label="Close"></button></a>
+      <form class="p-4 p-md-5 border rounded-3 bg-body-tertiary" method="POST" >
+        {% csrf_token %}
+      <h1 class="text-body-emphasis">welcome {{user.username}}</h1>
+      <div class="form-floating mb-3">
+        <input type="text" class="form-control" id="floatingInput" placeholder="room code" required name='room'>
+        <label for="floatingInput">room code</label>
+      </div>
+      <button class="w-100 btn btn-lg btn-primary" type="submit">join</button>
+          <hr class="my-4">
+          <small class="text-body-secondary">By clicking join , you agree to the terms of use.</small>
+        </form>
+      <!-- Wrap the button in an anchor tag -->
+      
+    </div>
+  </div>
+</body>
+</html>

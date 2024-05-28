@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ room }} - Chat Room App</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #fff; /* White background */
+}
+
+.header {
+  background-color: #333;
+  color: #fff;
+  padding: 20px;
+  text-align: center;
+}
+
+.container {
+  margin: 20px auto;
+  max-width: 800px;
+}
+
+.message-container {
+  border-radius: 10px;
+  background-color: #f0f0f0; /* Light gray background */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 70px; /* Adjust margin to make space for text area */
+}
+
+.message {
+  margin-bottom: 20px;
+}
+
+.message p {
+  margin: 0;
+}
+
+.message .user {
+  font-weight: bold;
+}
+
+.message .time {
+  font-size: 12px;
+  color: #777;
+}
+
+.input-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #fff; /* White background */
+  border-top: 1px solid #ddd; /* Light gray border */
+  padding: 20px;
+}
+
+.input-container input[type="text"] {
+  width: calc(100% - 100px);
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  margin-right: 10px;
+}
+
+.input-container input[type="submit"] {
+  width: 100px; /* Adjust button width */
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  background-color: #007bff; /* Blue color */
+  color: #fff;
+  cursor: pointer;
+}
+
+.input-container input[type="submit"]:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+}
+
+.logout-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background-color: #cc0000;
+  border: none;
+  color: #fff;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background-color: #990000;
+}
+</style>
+<script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<div class="header">
+  <h2>{{ room }} - Chat Room App</h2>
+</div>
+
+<div class="container">
+  <div class="message-container" id="message-container">
+    <!-- Messages will be displayed here -->
+  </div>
+</div>
+
+<div class="input-container">
+  <form id="post-form">
+    {% csrf_token %}
+    <input type="hidden" name="username" id="username" value="{{ username }}" />
+    <input type="hidden" name="room_id" id="room_id" value="{{ room_details.id }}" />
+    <input type="text" name="message" id="message" placeholder="Type your message..." />
+    <input type="submit" value="Send">
+  </form>
+</div>
+
+<script>
+$(document).ready(function(){
+  // Load messages initially
+  loadMessages();
+
+  // Load messages every 1 second
+  setInterval(loadMessages, 1000);
+
+  // Function to load messages via AJAX
+  function loadMessages() {
+    $.ajax({
+      type: 'GET',
+      url: "/getMessages/{{ room }}/",
+      success: function(response) {
+        var messages = response.messages;
+        var messageContainer = $("#message-container");
+        messageContainer.empty();
+        messages.forEach(function(message) {
+          var messageHTML = `
+            <div class="message">
+              <p><span class="user">${message.user}:</span> ${message.value}</p>
+              <p class="time">${message.date}</p>
+            </div>
+          `;
+          messageContainer.append(messageHTML);
+        });
+      },
+      error: function(response) {
+        alert('An error occurred while fetching messages');
+      }
+    });
+  }
+  $(document).ready(function() {
+    // Handle form submission to send message
+    $(document).on('submit', '#post-form', function(e) {
+      e.preventDefault();
+  
+      var formData = $(this).serialize(); // Serialize form data
+  
+      // Retrieve CSRF token value
+      var csrfToken = $('input[name=csrfmiddlewaretoken]').val();
+  
+      // Include CSRF token in the AJAX request data
+      formData += '&csrfmiddlewaretoken=' + csrfToken;
+  
+      $.ajax({
+        type: 'POST',
+        url: '/send',
+        data: formData,
+        headers: {
+          // Include CSRF token in the request headers
+          'X-CSRFToken': csrfToken
+        },
+        success: function(data) {
+          // Clear the message input field after sending
+          $('#message').val('');
+          // Load messages to display the new message
+          loadMessages();
+        }
+      });
+    });
+  });
+  
+  // Handle logout button click
+  $('.logout-btn').click(function() {
+    window.location.href = "/logout";
+  });
+});
+</script>
+
+<button class="logout-btn">Logout</button>
+
+</body>
+</html>
